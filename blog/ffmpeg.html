@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <!-- website title-->
+    <title>Lily Su's Blog </title>
+    <!-- icon-->
+
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico"/>
+    <meta charset="utf-8"/>
+    <link rel='stylesheet' type='text/css' href='../css/custom.css'>
+  </head>
+  <body>
+    <h1>ffmpeg️</h1>
+    <p>
+      
+    </p>
+    <h2>Ffmpeg On Mac</h2>
+    <h3>录制屏幕</h3>
+    <p>
+      安装ffmpeg，首先要确保安装好<code>homebrew</code>
+      <pre><code>
+brew install ffmpeg --with-x264
+      </pre></code>
+      除此之外还有很多参数参考如下
+      <pre><code>
+brew install ffmpeg \
+ --with-chromaprint --with-fdk-aac --with-libass --with-libsoxr --with-libssh --with-tesseract --with-libvidstab --with-opencore-amr \
+--with-openh264 --with-openjpeg --with-openssl --with-rtmpdump --with-rubberband --with-sdl2 --with-snappy --with-tools --with-webp \
+--with-x265 --with-xz --with-zeromq --with-zimg --with-fontconfig --with-freetype --with-frei0r --with-game-music-emu --with-libbluray \
+--with-libbs2b --with-libcaca --with-libgsm --with-libmodplug --with-libvorbis --with-libvpx --with-opus --with-speex --with-theora \
+ --with-two-lame --with-wavpack	  
+      </pre></code>
+    </p>
+    <p>
+      查看当前设备
+      <pre><code>
+ffmpeg -f avfoundation -list_devices true -i ""	  
+      </pre></code>
+      录制屏幕
+      <pre><code>
+#!/bin/bash
+# list devices
+# ffmpeg -f avfoundation -list_devices true -i ""
+# Recording Screen didn't include audio
+ffmpeg -y -f avfoundation -i "1:" -framerate 60 -c:v libx264 -r 60 -pix_fmt yuv420p \
+-preset 0 -crf 19 -c:a aac -b:a 192k "$HOME/sources/screen-record/Screen Record $(date "+%Y-%m-%d %H-%M-%S").mp4"	  
+      </pre></code>
+    </p>
+    
+    <h3>录音</h3>
+    <p>
+      录制为flac格式
+      <pre><code>
+#!/bin/bash
+# list devices
+# ffmpeg -f avfoundation -list_devices true -i ""
+ffmpeg -f avfoundation -i ":0"\
+       -c:a flac\
+       "$HOME/sources/audio-record/audio-$(date '+%y%m%d-%H%M-%S').flac" 
+	  
+      </pre></code>
+    </p>
+    <h2>Ffmpeg On Gentoo Linux</h2>
+    <p>
+      待补充
+    </p>
+      
+    <h3>录制屏幕</h3>
+    <h3>录音</h3>
+    <big>
+      <a href="../index.html">Return HomePage</a>
+    </big>
+  </body>
+</html>

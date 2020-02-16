@@ -1,0 +1,336 @@
+
+/* This goblino stylesheet is under construction. t. Luke */
+/* I'm merging a couple user submissions. */
+
+:root {
+    --color0: #292D3E;
+    --color1: #F07178;
+    --color2: #C3E88D;
+    --color3: #FFCB6B;
+    --color4: #82AAFF;
+    --color5: #C792EA;
+    --color6: #89DDFF;
+    --color7: #959DCB;
+    --color8: #676E95;
+    --color9: #f78C6C;
+    --color10: #444267;
+    --color11: #32374D;
+    --color12: #8796B0;
+    --color13: #959DCB;
+    --color14: #FF5370;
+    --color15: #FFFFFF;
+    --textcol: #858596;
+	--bg: #1b1b23;
+	--altbg:#292934;
+	--link: #97bef9;
+	--linkalt: #5982c1;
+}
+
+#links img{
+	height: 1.25em;
+}
+
+#links {
+	font-size: large;
+	align: center;
+	margin: auto;
+	max-width: 600px;
+	text-align: center;
+	background-color: var(--altbg);
+	padding: 5px;
+	border-radius: 30px;
+}
+
+li img{
+	height: 1.25em;
+}
+h1 img{
+	height: 1em;
+}
+
+h2 img{
+	height: 1em;
+}
+
+h3 img{
+	height: 1em;
+}
+
+
+
+html {
+	padding-bottom: 100px;
+	color: var(--textcol);
+	font-family: sans-serif;
+	background: var(--bg);
+}
+
+a {
+	color: var(--link);
+	text-decoration: none;
+}
+
+a:hover {
+    color: var(--linkalt);
+}
+
+body {
+	max-width: 1050px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 30px;
+	overflow: none;
+}
+
+/* The two panels on the main page: */
+.mainpanel {
+	float: left;
+	max-width: 700px;
+	padding: 4px;
+	padding-right: 30px;
+}
+
+.mainpanel li {
+    line-height:20px;
+}
+
+.sidepanel {
+	float: left;
+	max-width: 300px;
+	background-color: var(--altbg);
+	padding:2px;
+	border-radius: 0 10px 30px 0;
+}
+
+.sidepanel a {
+    color: #85631b;
+}
+
+.sidepanel a:hover {
+    color: #d89e23;
+}
+
+.sidepanel ul li {
+    font-size:20px;
+    margin:0 0 15px 0;
+}
+
+.sidepanel ul li ul li {
+    font-size:18px;
+    margin: 0px;
+    list-style: none;
+}
+
+a:hover img {
+    background: #fe8019;
+}
+
+/* Blog entry: */
+.entry {
+	padding: 10px;
+	border-radius: 0 10px 30px 0;
+	margin-bottom: 20px;
+	background: #2a2a35;
+	border-left: 10px solid #5982c1;
+}
+
+.entry h2 {
+    margin: 5px auto 2px auto;
+}
+
+footer strong {
+    font-weight: bold;
+}
+
+dt {
+	font-weight: bold;
+}
+
+dt img {
+	height: 1em;
+}
+
+/* Class name of video thumbnails in videos.html */
+.image {
+	width: 175px !important;
+	table-layout: fixed;
+	margin-left: auto;
+	margin-right: auto;
+	display: inline-table;
+	padding: 0px;
+}
+
+.image figcaption img {
+	height: 1em;
+}
+
+img.centered {
+	display: block;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+img {
+    /* border: 1px solid var(--color10); */
+    /* background: var(--color10); */
+    /* border-radius: 4px; */
+}
+
+figcaption {
+	padding: 0px;
+	max-width: 175px;
+}
+
+code {
+	color: var(--color2);
+    overflow-x: auto;
+    /* background: #1d2021; */
+}
+
+pre {
+    background: var(--color11);
+    border: 1px solid var(--color10);
+    border-radius: 4px;
+    padding: 5px;
+    display: block;
+    align: center;
+    max-width: 900px;
+    /* background: #1d2021; */
+}
+
+.indexcolname {
+	max-width: 100px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.indexcoldesc {
+	font-weight: bold;
+	padding: 10px;
+	font-size: large;
+}
+
+.indexcollastmod,.indexcolsize {
+	font-size: small;
+}
+
+#indexlist {
+    margin: 0px auto;
+}
+
+.centerpiece {
+	align: center;
+	margin: 0px auto;
+}
+
+/* Used in library.html */
+.booklist dt {
+	display: list-item;
+	list-style-type: square;
+	font-weight: normal;
+}
+
+.booklist dd {
+	display: none;
+}
+
+.booklist:hover dd {
+	display: block;
+}
+
+/* The mic class is for books featured in a NotRelated episode. */
+ .mic:before {
+    content: "🎙️";
+}
+
+.mic {
+	list-style: none;
+	padding-left: 1em;
+	text-indent: -1em;
+	margin-left: 0;
+	padding-left: 0;
+}
+
+ h1 {
+    color: #50505f;
+    font-weight:normal;
+}
+
+ h2 {
+    color: #bb841a;
+    font-weight:normal;
+ }
+
+ h3 {
+    color: #bb841a;
+    font-weight:normal;
+ }
+
+
+ h4 {
+    color: #bb841a;
+    font-weight:normal;
+ }
+
+
+ 
+ 
+
+.imgcont {
+	   text-align: center;
+	     position: relative;
+}
+
+.imgconttext {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: xx-large;
+	color: black;
+	text-shadow:
+    -1px -1px 0 white,
+    1px -1px 0 white,
+    -1px 1px 0 white,
+    1px 1px 0 white;
+}
+
+.hiddiv {
+	display: none;
+}
+
+.qr:hover {
+	color: goldenrod;
+}
+
+.qr:hover .hiddiv {
+	display: block;
+	float: right;
+}
+
+.hiddiv img {
+	height: 200px;
+}
+
+
+
+#toc_container {
+    background: #2a2a35 none repeat scroll 0 0;
+    border: 1px solid #aaa;
+    display: table;
+    font-size: 95%;
+    margin-bottom: 1em;
+    padding: 20px;
+    width: auto;
+}
+
+.toc_title {
+    font-weight: 700;
+    text-align: center;
+}
+
+#toc_container li, #toc_container ul, #toc_container ul li{
+    list-style: outside none none !important;
+    font-size: 14px;
+}

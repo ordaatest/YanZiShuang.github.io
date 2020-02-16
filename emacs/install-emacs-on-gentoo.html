@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <title>LilySu's Blog </title>
+    <!-- icon-->
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico"/>
+    <meta charset="utf-8"/>
+    <link rel='stylesheet' type='text/css' href='../css/custom.css'>
+  </head>
+  <body>
+    <h2>
+      Install Emacs On Gentoo
+    </h2>
+    <p>
+      Emacs 下在Gentoo默认安装是不带X的，要通过自定义USE来进行安装这篇文章将会主要以我使用的USE进行安装。
+    </p>
+
+    <p>
+      首先创建<code>packages.use</code>目录<code>mkdir -pv /etc/portage/package.use/</code>然后创建并编辑<code>/etc/portage/package.use/emacs</code>文件，其内容如下：
+    </p>
+    <pre><code>
+app-editors/emacs X xft xwidgets dbus png imagemagick jpeg
+app-emacs/emacs-common-gentoo X
+    </pre></code>
+    <p>
+      之后运行<code>emerge -av emacs</code>就可以得到你的emacs啦！Happy Hacking Emacs!
+    </p>
+    <big>
+    <a href="../index.html">Return HomePage</a>
+  </big>
+  </body>
+</html>
