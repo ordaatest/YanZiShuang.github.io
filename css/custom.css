@@ -186,6 +186,10 @@ code {
     overflow-x: auto;
     /* background: #1d2021; */
 }
+.Struct{
+	color: #fe8019;
+	overflow-x: auto;
+}
 
 pre {
     background: var(--color11);
