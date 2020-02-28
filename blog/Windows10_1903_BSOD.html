@@ -10,15 +10,223 @@
   </head>
   <body>
     <h1>Windows10 1903 BSOD 分析报告</h1>
-    <h2>0x00 开放下载:</h2>
+    <div id="toc_container">
+      <p class="toc_title">
+	contents
+      </p>
+      <li>
+      <center><a href="#0x00">环境设置</a></center>
+      </li>
+      <li>
+	<center><a href="#0x01">漏洞分析</a></center>
+      </li>
+      <li>
+      <center><a href="#Download">附件下载</a></center>
+      </li>
+      </div>
+
+    <h2 id="0x00"> 0x00: Windows10 1903 X64 无补丁</h2>
+    <p>
+      <img src="./img/sa21.png" width="800px">
+    </p>
+
+    <h2 id="0x01"> 0x01: 漏洞细节分析 </h2>
+    <p>
+      运行Poc后,结束进程,Windows立刻 <font color="#82AAFF">BSOD</font>,错误为<font color="#82AAFF">BAD_POOL_CALLER (c2)</font>,出现异常的地址为0xfffff38440880000
+    </p>
+    
+    <img src="./img/ddq.png" width="800px">
+
+    <p>
+      虽然这样确实可以触发<font color="#82AAFF">BSOD</font>,但是我们根本不知道为什么这样会导致<code>BSOD(逻辑错误,使用ExFreePoolWithTag释放了不属于Kernel Pool的内存)</code>
+      下面是本人关于该漏洞的分析报告
+    </p>
+
+   
+    <p>首先输入k,查看函数调用堆栈</p>
+
+    <pre>
+    <code>
+
+      1: kd> k
+        # Child-SP          RetAddr           Call Site
+        .............
+        09 fffffc82`5efb12d0 fffff802`61d6a0a9 nt!ExFreeHeapPool+0x809
+        0a fffffc82`5efb13f0 fffff3d3`e44e945d nt!ExFreePool+0x9
+        0b fffffc82`5efb1420 fffff3d3`e4a97e47 win32kfull!Win32FreePoolImpl+0x4d
+        0c fffffc82`5efb1450 fffff3d3`e4b32c2a win32kbase!Win32FreePool+0x27
+        0d fffffc82`5efb1480 fffff3d3`e4a77a56 win32kbase!xxxDestroyThreadInfo+0xbfa12
+        0e fffffc82`5efb1650 fffff3d3`e44cfac6 win32kbase!UserThreadCallout+0x466
+        0f fffffc82`5efb1840 fffff3d3`e4ab2e87 win32kfull!W32pThreadCallout+0x76
+        10 fffffc82`5efb1870 fffff3d3`e483103b win32kbase!W32CalloutDispatch+0x367
+        11 fffffc82`5efb1a90 fffff802`61fd5d81 win32k!SysEntryGetDispatchTableValues+0x1b
+        .............
+        19 00000015`c4bff548 00007ffd`8f435d1b win32u!NtUserMessageCall+0x14
+        1a 00000015`c4bff550 00007ffd`8f449035 USER32!SendMessageW+0x27b
+        1b 00000015`c4bff5f0 00000000`00000000 USER32!SendMessageA+0x55
+
+    </code>
+    </pre>
+
+    <p>可以看到是<code>win32kfull!Win32FreePoolImpl</code>函数导致的异常,所以我们再次运行Poc,从<code>win32kfull!Win32FreePoolImpl</code>函数下条件断点</p>
+
+    <pre><font color="#FFCB6B">ba e1 win32kfull!Win32FreePoolImpl+0x46 "r rcx;.if(cx == 0){.echo 1}.else{.echo 2;g}"</font></pre>
+
+    <p>
+
+      为什么要判断cx是否为0呢,因为该函数经常调用,正常在函数下断点没办法下断,移动鼠标等均会调用该函数.并且释放的内存后7位固定为 0880000,所以用cx寄存器判断是否为释放的异常内存.
+
+    </p>
+
+    <pre>
+      <code>
+      0: kd> r
+        rax=0000000000000000 rbx=fffffb4a00602080 rcx=fffffb4a00880000
+        rdx=0000000000000000 rsi=fffffb4a0317f8e0 rdi=fffffb4a00880000
+        rip=fffffb1764ee9456 rsp=ffffb00f4d261420 rbp=ffffb00f4d261750
+        r8=fffffb176524a110  r9=0000000000000001 r10=fffffb4a01237a30
+        r11=ffffb00f4d261460 r12=0000000000000001 r13=fffffb1765397988
+        r14=0000000000000000 r15=fffffb4a031898a0
+        iopl=0  nv up ei pl zr na po nc
+        cs=0010  ss=0018  ds=002b  es=002b  fs=0053  gs=002b             efl=00000246
+        win32kfull!Win32FreePoolImpl+0x46:
+        fffffb17`64ee9456 48ff1563ed2600 call qword ptr[win32kfull!_imp_ExFreePoolWithTag (fffffb17`651581c0)]
+      </code>
+    </pre>
+
+    <p>用 Windbg的 !pool 指令检测池属性</p>
+
+    <pre>
+      <code>
+      0: kd> !pool rcx
+        Pool page fffffb4a00880000 region is Paged session pool
+        fffffb4a00880000 is not a valid large pool allocation, checking large session pool...
+        fffffb4a00880000 is not valid pool. Checking for freed (or corrupt) pool
+        Address fffffb4a00880000 could not be read. It may be a freed, invalid or paged out page
+      </code>
+    </pre>
+
+    <p>
+      发现无法正常解析内核池,手动查看Pool Header结构是否被破坏
+    </p>
+
+    <pre>
+      <code>
+      0: kd> dq rcx-10
+        fffffb4a`0087fff0  ????????`???????? ????????`????????
+        fffffb4a`00880000  00000000`00000004 00000000`00000000
+      </code>
+    </pre>
+
+    <p>
+
+      居然是未分配的内存,并且未发现Pool Header,这块根本不是内核池,此时查看堆栈调用,发现上层函数为 <code>win32kbase!Win32FreePool</code>
+
+    </p>
+
+    <img src="./img/fb1.png" width="800px">
+
+    <p>
+
+    <code>win32kbase!Win32FreePool</code>,仅将<code>win32kbase!xxxDestroyThreadInfo</code>传入的内存地址传给<code>win32kfull!Win32FreePoolImpl</code>,跟踪<code>win32kbase!xxxDestroyThreadInfo</code>函数
+
+    </p>
+
+    <img src="./img/ks11.png" width="800px">
+
+    <p>
+
+      我们并没有
+      <font class="Struct">tagTHREADINFO</font>
+      结构在Windows10上的符号,所以并不知道
+      <font class="Struct">tagTHREADINFO+0x2C8</font>
+      处是什么结构(逆向后得知
+      <font class="Struct">tagTHREADINFO+0x2C8</font>
+      为指向
+      <font class="Struct"> tagSBTrack</font>
+      结构的指针),由于不知道是什么函数设置了
+      <font class="Struct">tagTHREADINFO+0x2C8</font>
+      处的内容,所以首先我们继续设置条件断点
+
+    </p>
+
+    <pre><font color="#FFCB6B">ba e1 win32kbase!xxxDestroyThreadInfo+0x94 "r rsi;.if(poi(rsi+0x2C8) != 0){.echo 1}.else{g}"</font></pre>
+
+    <p>rsi指向
+    <font class="Struct">tagTHREADINFO</font>
+    结构体,判断
+    <font class="Struct">tagTHREADINFO+0x2C8</font>
+    是否非0,如果非0,则断下查看是否为触发异常的内存地址.</p>
+    
+    <pre>
+      <code>
+          win32kbase!xxxDestroyThreadInfo+0x94:
+          ffffdf09`7e5c32ac 4889b42488000000 mov     qword ptr [rsp+88h],rsi
+        1: kd> dq rsi+2c8 l1
+          ffffdf29`031792d8  ffffdf29`00880000
+      </code>
+    </pre>
+
+    <p>
+
+      发现依然为触发异常的内核地址,接着笔者跟踪了 
+    <code>win32kbase!UserThreadCallout </code>
+      以及
+    <code>win32kfull!W32pThreadCallout</code>
+      函数,发现均未设置Or 修改 
+      <font class="Struct">tagTHREADINFO+0x2C8</font>
+      ,此时笔者修改Poc 在
+    <code>SendMessage</code>
+      前加入调试断点,在WinDbg中断下后,保存虚拟机快照,并直接触发漏洞,寻找修改
+      <font class="Struct">tagTHREADINFO+0x2C8</font>
+      处结构的地址
+
+    </p>
+
+    <p>
+      断下后,rsi=fffffe464319c010,恢复快照,下内存写入断点,查看是那个函数写入到0xfffffe464319c010+0x2C8处
+    </p>
+
+    <pre><font color="#FFCB6B">Ba w8 0xfffffe464319c010+0x2C8</font></pre>
+
+    <pre>
+      <code>
+        1: kd> g
+          Breakpoint 0 hit
+          win32kfull!xxxSBTrackInit+0xee:
+          0010:fffffe25`69046046 8b45bb          mov     eax,dword ptr [rbp-45h]
+      </code>
+    </pre>
+
+    <p>断下后,发现 <code>win32kfull!xxxSBTrackInit</code> 会将由Type isolation分配的tagSbTrack结构写入到 
+      <font class="Struct">tagTHREADINFO+0x2C8</font>
+      处
+    </p>
+
+    <img src="./img/asf1.png" width="800px">
+
+    <p>
+
+      TypeIsolation,为Windows10 1709后引入的新的缓解措施
+      ( Win32k typeisolation),
+      正是该机制导致的BSOD,该函数返回一个
+      <code>Nt!MmCommitSessionMappedView </code>
+      映射出的内存,而并非Kernel Pool,使用<code>ExFreePool</code>释放内核池自然会触发异常,导致BSOD.
+    </p>
+    
+    <h2 id="Download">附件下载:</h2>
+
     <p>
       Word下载:<a href="../images/Windows10_1903_BSOD/Windows10_1903_BSOD.doc">Windows10_1903_BSOD分析报告.doc</a>
     </p>
     <p>
       Poc下载:<a href="../images/Windows10_1903_BSOD/Windows10_1903_BSOD.zip">Poc.zip</a>
     </p>
-  <div class="entry">
-    <a href="../index.html">Return HomePage</a>
-  </div>
+
+    <h2 id="Time">2020/02/12 20:55</h2>
+
+    <big>
+      <a href="../index.html">Return HomePage</a>
+    </big>
   </body>
 </html>
