@@ -1,0 +1,249 @@
+<html>
+  <head>
+    <!-- website title-->
+    <title>(显示驱动系列) 因为你安全了-所以你危险了{空指针引用}</title>
+    <!-- icon-->
+
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico"/>
+    <meta charset="utf-8"/>
+    <link rel='stylesheet' type='text/css' href='../css/custom.css'>
+  </head>
+  <body>
+    <h1>GreAnimatePalette 空指针引用</h1>
+    <div id="toc_container">
+      <p class="toc_title">
+	contents
+      </p>
+      <li>
+      <center><a href="#0x00">前言</a></center>
+      </li>
+      <li>
+	<center><a href="#0x01">空指针引用</a></center>
+      </li>
+      <li>
+      <center><a href="#Download">附件下载</a></center>
+      </li>
+      </div>
+
+    <h2 id="0x00"> 0x00: 前言</h2>
+
+    <p>在 Windows Vista 的时候,微软将打印机驱动从内核态移动到了用户态,这样可以解决相当一部分打印机驱动导致的漏洞,因为第三方开发的驱动的安全性有待提高.</p>
+
+    <p>
+        这样做好处的显而易见的,减少了许多第三方开发的打印机驱动的漏洞,但是也带来了弊端,通过Hook图形设备驱动接口 Or 打印机驱动接口,为安全研究员们扩展了一个新的攻击面,这就有些得不偿失了.
+    </p>
+
+    <p>
+        因此本系列文章将从简入深的讲解多个由安全性提高转化成安全性”降低”的多个漏洞,其中包含但不限于(空指针引用,内存越界读写等)
+    </p>
+      
+    <h2 id="0x01"> 0x01: 空指针引用 </h2>
+    <p>
+        创建图形驱动程序必须要创建的函数如下
+    </p>
+    
+    <img src="./img/1ksq.png"  width="800px"><br /><br />
+
+
+    <p>
+    
+        这些函数是必须要创建的,如果为空,则在内核中创建对象不可能成功.
+    
+    </p>
+
+  <p>
+    
+    通过
+     <code>CreateDC</code> 
+     指定名称可以创建一个关于打印机设备的上下文环境,我们阅读源码后发现他会回调打印机
+     <font class="Struct">DDI</font>
+         函数中的
+     <code>DrvEnablePDEV</code>
+     ,并传递了多个重要数据结构,我们可以
+     Hook <code>DrvEnablePDEV</code>
+     函数来修改函数执行过后的结果,当其返回内核时,我们即可控制函数的执行流程了.
+
+  </p>
+
+  <img src="./img/1lko1.png"  width="800px"><br /><br />
+
+
+    <p>
+
+        不过在早期的 Windows 中,安全性并没有现在这么高,很多安全保护都是不存在的,就比如说空指针引用,我们就可以利用他来达到本地权限提升的目的
+
+    </p>
+
+    <h3>GreAnimatePalette函数分析:</h3>
+
+    <p>
+
+    <code>AnimatePalette</code>
+    函数置换指定逻辑调色板中的颜色项,在Win32k中该函数调用了实现函数
+    <code>XEPALOBJ::ulAnimatePalette</code>
+    来实现功能.
+
+    </p>
+
+    <p>
+
+        但是在早期的Windows7中,该函数存在空指针引用漏洞,利用该漏洞我们可以达到本地权限提升的目的.
+    
+    </p>
+
+    <p>
+
+        我们可以使用用户态包装好的
+        <code>AnimatePalette</code>
+        函数来调用到
+    <code>GreAnimatePalette</code>
+        函数或者从<font class="Struct">ShaDownSSDT</font>中搜素编号调用
+    <code> NtGdiDoPalette</code>
+        函数都可以执行到
+    <code>XEPALOBJ::ulAnimatePalette.</code>
+
+    </p>
+
+      
+    <p>
+    
+        由于该函数是
+        <code>XEPALOBJ</code>
+        类中的函数,所以存在一个This指针,通常为ecx,此处也是一样,ecx保存着指向
+        <font class="Struct">PALETTE</font>
+        结构的指针.
+    
+    </p>
+
+    <p>
+
+        该函数首先判断了传入的iStart是否大于颜色项的总个数,如果大于则结束函数
+
+    </p>
+
+    <img src="./img/ksuq.png"  width="800px">
+
+    <p>
+
+        接着判断iStart + cEntry 是否大于 cEntries,如果大于则将cEntry设置为cEntries-iStart.
+
+    </p>
+
+
+      <img src="./img/lksjas.png"  width="800px">
+
+    <p>
+
+        判断是否为某个<font class="Struct">DC</font>中的调色板,判断<font class="Struct">Palette.cRefhpal</font>是否存在,不存在则跳出循环
+
+    </p>
+
+    <img src="./img/ijshsa1.png"  width="800px">
+
+    <p>
+      
+        判断<font class="Struct">Palete->GdiInfo.flRaster & RC_PALETTE</font>是否为真,如果为假,则跳出循环
+    
+    </p>
+
+    <img src="./img/kaskdk.png"  width="800px">
+
+    <p>
+      
+        最后判断 
+        <font class="Struct">Palete->ptransCurrent</font>
+        是否存在,如果不存在则跳出循环,存在则初始化两个局部变量,一个指向
+        <font class="Struct">Palete->ptransCurrent</font>
+        ,另外一个指向
+        <font class="Struct">Palete->ptransCurrent->ajVector[iStart]</font>
+        .
+    </p>
+
+    <img src="./img/kaskdnoqw.png"  width="800px">
+
+    <p>
+
+        下面是个循环,大致意思就是从函数的第三个参数
+        (<font class="Struct">ppalSrc</font>)
+        复制内容到
+        <font class="Struct">Palette.pFirstColor[iStart]</font>
+        中,并且判断
+        <font class="Struct">Palete->ptransCurrent</font>
+        是否为真,如果为真则读取
+        <font class="Struct">Palete->ptransCurrent->ajVector[iStart]</font>
+        处的内容当作偏移,来写入到
+        <font class="Struct">palSurf.pFirstColor[Palete->ptransCurrent->ajVector[iStart]]</font>
+        中.
+        (写入内容为<font class="Struct">*ppalSrc</font>)
+
+
+    </p>
+
+      <img src="./img/ksjknqweo.png"  width="800px">
+    <p>
+
+        结束循环后,函数会再次判断
+        <font class="Struct">Palete->ptransCurrent</font>
+        是否存在,
+        <font class="Struct">Palete->GdiInfo.flRaster & RC_PALETTE</font>
+        是否为真以及判断
+        <font class="Struct">Palete->fs& PDEV_DISABLED</font>
+        是否为假,如果为False,则会从
+        <font class="Struct">PEDV->apfn[]</font>
+        表中寻找需要的函数函数并跳转执行.
+
+
+    </p>
+
+      <img src="./img/nsjqiw.png"  width="800px">
+
+
+    <p>
+        是不是很熟悉
+        PPFNDRV
+        ,这个上文是不是回调过
+    <code>DrvEnablePDEV</code>
+        ,这里是要回调
+        <code>DrvSetPalette</code>
+        吗?
+    </p>
+
+    <p>
+
+        理论上来说是的,但是实际上来说,上文保存了一个必须创建图形驱动程序必须要创建的函数表,其中并没有 
+        <code>DrvSetPalette</code>
+        ,因为这个函数是可选的. 
+
+    </p>
+
+    <img src="./img/ksq1231.png"  width="800px">
+
+    <p>
+        问题来了,如果不存在这个函数,但是函数调用了他,会出现什么问题呢?
+    </p>
+
+    <p>
+        答对了,空指针引用,在老版本 Windows 中并没有对函数指针是否正确进行验证,所以如果函数指针指向0,依然会Call过去,这样就造成了一个空指针引用的漏洞,我们只要在0处申请内存,填充代码,在同一进程上下文中即可触发该引用,让操作系统执行我们的代码.
+    </p>
+
+    <img src="./img/29kjsa.png"  width="800px">
+    
+
+
+    <h2 id="Download">附件下载:</h2>
+
+    <p>
+      Word:<a href="../images/Null-ToDDI/Null-ToDDI.doc">因为你安全了,所以你危险了(空指针引用).doc</a>
+    </p>
+
+    <p>
+      Poc:<a href="../images/Null-ToDDI/Null-DDI.zip">Null-DDI.zip</a>
+    </p>
+
+    <h2 id="Time">2020/03/22 17:10</h2>
+
+    <big>
+      <a href="../index.html">Return HomePage</a>
+    </big>
+  </body>
+</html>
