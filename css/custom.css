@@ -84,7 +84,7 @@ html {
     the image here is also kinda huge as im using a 4k ultrawide and wanted it to look crisp on my end too, so load times might suffer for some there.
     */
 
-    background: linear-gradient(var(--color5), var(--color6), var(--color2));
+    background: linear-gradient(var(--linkalt), var(--color15), var(--color5));
 
     /* background-image: url('https://i.imgur.com/VGomYTk.png'); */
     background-attachment: fixed;
