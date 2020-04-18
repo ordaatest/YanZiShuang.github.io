@@ -2,30 +2,35 @@
 /* This goblino stylesheet is under construction. t. Luke */
 /* I'm merging a couple user submissions. */
 
-:root {
-    --color0: #292D3E;
-    --color1: #F07178;
-    --color2: #C3E88D;
-    --color3: #FFCB6B;
-    --color4: #82AAFF;
-    --color5: #C792EA;
-    --color6: #89DDFF;
-    --color7: #959DCB;
-    --color8: #676E95;
-    --color9: #f78C6C;
-    --color10: #444267;
-    --color11: #32374D;
-    --color12: #8796B0;
-    --color13: #959DCB;
-    --color14: #FF5370;
-    --color15: #FFFFFF;
-    --textcol: #858596;
-	--bg: #1b1b23;
-	--altbg:#292934;
-	--link: #97bef9;
-	--linkalt: #5982c1;
-}
 
+
+
+
+:root {
+    --color0: #282828;
+    --color1: #cc241d;
+    --color2: #98971a;
+    --color3: #d79921;
+    --color4: #458588;
+    --color5: #b16286;
+    --color6: #689d6a;
+    --color7: #a89984;
+    --color8: #928374;
+    --color9: #fb4934;
+    --color10: #b8bb26;
+    --color11: #fabd2f;
+    --color12: #83a598;
+    --color13: #d3869b;
+    --color14: #8ec07c;
+    --color15: #ebdbb2;
+    --color256: #1d2021;
+    --color257: #ebdbb2;
+    --textcol: #858596;
+    --bg: #1b1b23;
+    --altbg:#292934;
+    --link: #97bef9;
+    --linkalt: #5982c1;
+}
 #links img{
 	height: 1.25em;
 }
@@ -57,12 +62,36 @@ h3 img{
 }
 
 
-
+/*
 html {
 	padding-bottom: 100px;
 	color: white;
 	font-family: sans-serif;
 	background: var(--bg);
+}
+*/
+
+    
+html {
+
+    /*
+    this really isnt best practice to style directly on <html>. this SHOULD be the style of the <body>
+    and whats on <body>, should rahter be on a <div>, or a <main>.
+
+    cool to see you use css variables, such a new thing. but still you hold on to a bit of boomer stuff in other parts. sneaky, and i respect it.
+    but, if you are going to use the same styling on more than one element, its best practice to use a class.
+    also i added a different background that dont burn out eyes, as I am sensitive to that. but it still looks good with the original. just comment it out and you will see.
+    the image here is also kinda huge as im using a 4k ultrawide and wanted it to look crisp on my end too, so load times might suffer for some there.
+    */
+
+    background: linear-gradient(var(--color5), var(--color6), var(--color2));
+
+    /* background-image: url('https://i.imgur.com/VGomYTk.png'); */
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding-bottom: 100px;
+    font-family: helvetica, sans-serif;
 }
 
 a {
@@ -73,13 +102,35 @@ a {
 a:hover {
     color: var(--linkalt);
 }
-
+/*
 body {
 	max-width: 1050px;
 	margin-left: auto;
 	margin-right: auto;
 	margin-top: 30px;
 	overflow: none;
+}
+*/
+
+body {
+
+    /*overflow cant be changed on body. since this type of styling is not for the body tag.*/
+    max-width: 1050px;
+    margin-left: auto;
+    margin-right: auto;
+    background: var(--color256);
+        padding: 15px;
+    /*
+    using different ways of shaddows to work in other browsers
+    as some might be using IE still for some reason
+    */
+    -webkit-box-shadow: 0px 0px 13px 6px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 0px 0px 13px 6px rgba(0, 0, 0, 0.75);
+    box-shadow: 0px 0px 13px 6px rgba(0, 0, 0, 0.75);
+    color: var(--color15);
+    border-radius: 5px;
+    margin-top: 6em!important;
+    border: solid 1px;
 }
 
 /* The two panels on the main page: */
@@ -126,6 +177,7 @@ a:hover img {
 }
 
 /* Blog entry: */
+/*
 .entry {
 	padding: 10px;
 	border-radius: 0 10px 30px 0;
@@ -134,16 +186,36 @@ a:hover img {
 	border-left: 10px solid #5982c1;
 }
 
+
+.entry {
+    padding: 10px;
+    border-radius: 0 5px 18px 0;
+    margin-bottom: 50px;
+    background: #1b1b1b;
+    border: 1px solid var(--color1);
+    border-left: 10px solid var(--color4);
+}
+*/
 .entry h2 {
     margin: 5px auto 2px auto;
+}
+
+.entry small {
+    color: var(--color15);
 }
 
 footer strong {
     font-weight: bold;
 }
-
+/*
 dt {
 	font-weight: bold;
+}
+*/
+
+dt {
+    font-weight: bold;
+    margin-top: 2em;
 }
 
 dt img {
@@ -192,7 +264,7 @@ code {
 }
 
 pre {
-    background: var(--color11);
+    /*background: var(--color11);*/
     border: 1px solid var(--color10);
     border-radius: 4px;
     padding: 5px;
@@ -215,7 +287,8 @@ pre {
 	font-size: large;
 }
 
-.indexcollastmod,.indexcolsize {
+.indexcollastmod,
+.indexcolsize {
 	font-size: small;
 }
 
